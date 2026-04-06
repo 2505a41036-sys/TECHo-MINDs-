@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Pest Detection - Officer Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        .officer-info {
+            float: right;
+            text-align: right;
+        }
+
+        .officer-info p {
+            margin: 5px 0;
+        }
+
+        header::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
+
+        /* Navigation */
+        nav {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            gap: 20px;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            color: #555;
+        }
+
+        nav button:hover {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        nav button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        /* Main Content Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .widget {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .widget:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .widget-full {
+            grid-column: 1 / -1;
+        }
+
+        .widget-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .widget-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        /* Reports Section */
+        .pending-reports {
+            list-style: none;
+        }
+
+        .report-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .report-item:hover {
+            background: #eef1f7;
+            border-left-color: #764ba2;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .report-pest-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.05em;
+        }
+
+        .confidence-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .severity-high {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .severity-medium {
+            background: #ffa500;
+            color: white;
+        }
+
+        .severity-low {
+            background: #51cf66;
+            color: white;
+        }
+
+        .report-details {
+            font-size: 0.9em;
+            color: #666;
+            margin: 8px 0;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-approve {
+            background: #51cf66;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #40c057;
+            transform: scale(1.05);
+        }
+
+        .btn-reject {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #fa5252;
+            transform: scale(1.05);
+        }
+
+        .btn-review {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-review:hover {
+            background: #5568d3;
+        }
+
+        /* Trends Section */
+        .trends-chart {
+            height: 250px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .bar {
+            width: 8%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .bar:hover {
+            filter: brightness(1.1);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Map Section */
+        .map-container {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .hotspot {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .hotspot:hover {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: #fa5252;
+        }
+
+        .hotspot-label {
+            position: absolute;
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .hotspot:hover .hotspot-label {
+            opacity: 1;
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        /* Alert Preferences */
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-large {
+            padding: 12px 24px;
+            font-size: 1em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-large:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .modal-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .modal-info p {
+            margin: 8px 0;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            nav button {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                padding: 20px;
+            }
+
+            .officer-info {
+                float: none;
+                text-align: left;
+                margin-top: 15px;
+            }
+        }
+
+        /* Loading Animation */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Alert Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #51cf66;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            z-index: 2000;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .toast.error {
+            background: #ff6b6b;
+        }
+
+        .toast.warning {
+            background: #ffa500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🌾 Crop Pest Detection System</h1>
+            <p>Agricultural Officer Dashboard - Real-time Pest Management</p>
+            <div class="officer-info">
+                <p><strong>Officer:</strong> Rajesh Kumar</p>
+                <p><strong>Region:</strong> Central Region | <strong>Status:</strong> Active</p>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav>
+            <button class="nav-btn active" onclick="switchTab('reports')">📋 Pending Reports</button>
+            <button class="nav-btn" onclick="switchTab('trends')">📊 Pest Trends</button>
+            <button class="nav-btn" onclick="switchTab('map')">🗺️ Hotspot Map</button>
+            <button class="nav-btn" onclick="switchTab('stats')">📈 Statistics</button>
+            <button class="nav-btn" onclick="switchTab('settings')">⚙️ Settings</button>
+        </nav>
+
+        <!-- Statistics Overview -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-number">24</div>
+                <div class="stat-label">Pending Reports</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Verified Today</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Active Outbreaks</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">487</div>
+                <div class="stat-label">Farmers Alerted</div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard">
+            <!-- Tab 1: Pending Reports -->
+            <div id="reports-tab" class="widget-full" style="display: block;">
+                <div class="widget-title">Pending Pest Reports for Review</div>
+                <ul class="pending-reports">
+                    <li class="report-item">
+                        <div class="report-header">
+                            <span class="report-pest-name">🐛 Armyworm (Spodoptera)</span>
+                            <span class="confidence-badge">92% Confidence</span>
+                        </div>
+                        <span class="severity-badge severity-high">🔴 HIGH SEVERITY</span>
+                        <div class="report-details">
+                            <strong>Farmer:</strong> Vikram Singh | <strong>Crop:</strong> Cotton<br>
+                            <strong>Location:</strong> 23.1815°N, 79.9864°E (5.2 km from you)<br>
+                            <strong>Affected Area:</strong> 35% of field | <strong>Reported:</strong> 2 hours ago
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-approve" onclick="verifyReport(1, true)">✓ Verify</button>
+                            <button class="btn btn-reject" onclick="verifyReport(1, false)">✗ Reject</button>
+                            <button class="btn btn-review" onclick="viewReport(1)">View Details</button>
+                        </div>
+                    </li>
+
+                    <li class="report-item">
+                        <div class="report-header">
+                            <span class="report-pest-name">🦟 Whitefly</span>
+                            <span class="confidence-badge">78% Confidence</span>
+                        </div>
+                        <span class="severity-badge severity-medium">🟠 MEDIUM SEVERITY</span>
+                        <div class="report-details">
+                            <strong>Farmer:</strong> Priya Verma | <strong>Crop:</strong> Rice<br>
+                            <strong>Location:</strong> 23.1902°N, 79.9751°E (3.8 km from you)<br>
+                            <strong>Affected Area:</strong> 20% of field | <strong>Reported:</strong> 4 hours ago
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-approve" onclick="verifyReport(2, true)">✓ Verify</button>
+                            <button class="btn btn-reject" onclick="verifyReport(2, false)">✗ Reject</button>
+                            <button class="btn btn-review" onclick="viewReport(2)">View Details</button>
+                        </div>
+                    </li>
+
+                    <li class="report-item">
+                        <div class="report-header">
+                            <span class="report-pest-name">🐜 Aphid (Aphis)</span>
+                            <span class="confidence-badge">85% Confidence</span>
+                        </div>
+                        <span class="severity-badge severity-medium">🟠 MEDIUM SEVERITY</span>
+                        <div class="report-details">
+                            <strong>Farmer:</strong> Rajesh Patel | <strong>Crop:</strong> Wheat<br>
+                            <strong>Location:</strong> 23.1756°N, 79.9921°E (2.1 km from you)<br>
+                            <strong>Affected Area:</strong> 15% of field | <strong>Reported:</strong> 6 hours ago
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-approve" onclick="verifyReport(3, true)">✓ Verify</button>
+                            <button class="btn btn-reject" onclick="verifyReport(3, false)">✗ Reject</button>
+                            <button class="btn btn-review" onclick="viewReport(3)">View Details</button>
+                        </div>
+                    </li>
+
+                    <li class="report-item">
+                        <div class="report-header">
+                            <span class="report-pest-name">🦗 Locust (Shistocerca)</span>
+                            <span class="confidence-badge">71% Confidence</span>
+                        </div>
+                        <span class="severity-badge severity-high">🔴 HIGH SEVERITY</span>
+                        <div class="report-details">
+                            <strong>Farmer:</strong> Deepak Kumar | <strong>Crop:</strong> Maize<br>
+                            <strong>Location:</strong> 23.1834°N, 79.9805°E (4.5 km from you)<br>
+                            <strong>Affected Area:</strong> 50% of field | <strong>Reported:</strong> 8 hours ago
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-approve" onclick="verifyReport(4, true)">✓ Verify</button>
+                            <button class="btn btn-reject" onclick="verifyReport(4, false)">✗ Reject</button>
+                            <button class="btn btn-review" onclick="viewReport(4)">View Details</button>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Tab 2: Trends -->
+            <div id="trends-tab" class="widget" style="display: none;">
+                <div class="widget-title">Pest Detection Trends (Last 30 Days)</div>
+                <div class="trends-chart">
+                    <div class="bar" style="height: 20%;"><span class="bar-value">5</span><span class="bar-label">Apr 1</span></div>
+                    <div class="bar" style="height: 25%;"><span class="bar-value">8</span><span class="bar-label">Apr 4</span></div>
+                    <div class="bar" style="height: 35%;"><span class="bar-value">12</span><span class="bar-label">Apr 7</span></div>
+                    <div class="bar" style="height: 45%;"><span class="bar-value">15</span><span class="bar-label">Apr 10</span></div>
+                    <div class="bar" style="height: 60%;"><span class="bar-value">22</span><span class="bar-label">Apr 13</span></div>
+                    <div class="bar" style="height: 75%;"><span class="bar-value">28</span><span class="bar-label">Apr 16</span></div>
+                    <div class="bar" style="height: 90%;"><span class="bar-value">35</span><span class="bar-label">Apr 19</span></div>
+                    <div class="bar" style="height: 80%;"><span class="bar-value">30</span><span class="bar-label">Apr 22</span></div>
+                    <div class="bar" style="height: 70%;"><span class="bar-value">25</span><span class="bar-label">Apr 25</span></div>
+                    <div class="bar" style="height: 65%;"><span class="bar-value">24</span><span class="bar-label">Apr 28</span></div>
+                    <div class="bar" style="height: 60%;"><span class="bar-value">22</span><span class="bar-label">May 1</span></div>
+                    <div class="bar" style="height: 55%;"><span class="bar-value">20</span><span class="bar-label">May 4</span></div>
+                </div>
+                <p style="color: #666; margin-top: 20px;">
+                    📈 <strong>Trend:</strong> INCREASING | Pest reports peaked on Apr 16 with 35 detections. 
+                    Recent stabilization suggests effective control measures.
+                </p>
+                <p style="color: #ff6b6b; margin-top: 10px;">
+                    ⚠️ <strong>Alert:</strong> Armyworm and Locust populations showing unusual elevation for this season.
+                </p>
+            </div>
+
+            <!-- Tab 3: Map -->
+            <div id="map-tab" class="widget widget-full" style="display: none;">
+                <div class="widget-title">Pest Hotspot Map - Geographic Distribution</div>
+                <div class="map-container">
+                    <div class="hotspot" style="width: 120px; height: 120px; top: 20%; left: 15%;">
+                        <span class="hotspot-label">Hotspot 1<br>12 reports</span>
+                    </div>
+                    <div class="hotspot" style="width: 90px; height: 90px; top: 30%; left: 55%;">
+                        <span class="hotspot-label">Hotspot 2<br>8 reports</span>
+                    </div>
+                    <div class="hotspot" style="width: 100px; height: 100px; top: 60%; left: 35%;">
+                        <span class="hotspot-label">Hotspot 3<br>10 reports</span>
+                    </div>
+                    <div class="map-placeholder">🗺️ Interactive Pest Hotspot Map (Red circles = high pest concentration)</div>
+                </div>
+                <p style="margin-top: 15px; color: #666;">
+                    <strong>Interpretation:</strong> Three major hotspots identified in your region. 
+                    Recommend targeted pest control intervention in these areas. Consider regional awareness campaign.
+                </p>
+            </div>
+
+            <!-- Tab 4: Statistics -->
+            <div id="stats-tab" class="widget widget-full" style="display: none;">
+                <div class="widget-title">Regional Pest Analysis & Statistics</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h3 style="color: #667eea; margin-bottom: 10px;">Top Detected Pests</h3>
+                        <ul style="list-style: none;">
+                            <li style="padding: 8px; border-bottom: 1px solid #eee;">
+                                <span style="font-weight: bold;">Armyworm</span> - 35 reports (45%)
+                                <div style="width: 100%; background: #f0f0f0; height: 8px; border-radius: 4px; margin-top: 5px;">
+                                    <div style="width: 45%; background: #667eea; height: 100%; border-radius: 4px;"></div>
+                                </div>
+                            </li>
+                            <li style="padding: 8px; border-bottom: 1px solid #eee;">
+                                <span style="font-weight: bold;">Whitefly</span> - 22 reports (28%)
+                                <div style="width: 100%; background: #f0f0f0; height: 8px; border-radius: 4px; margin-top: 5px;">
+                                    <div style="width: 28%; background: #764ba2; height: 100%; border-radius: 4px;"></div>
+                                </div>
+                            </li>
+                            <li style="padding: 8px;">
+                                <span style="font-weight: bold;">Aphid</span> - 15 reports (19%)
+                                <div style="width: 100%; background: #f0f0f0; height: 8px; border-radius: 4px; margin-top: 5px;">
+                                    <div style="width: 19%; background: #51cf66; height: 100%; border-radius: 4px;"></div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 style="color: #667eea; margin-bottom: 10px;">Affected Crops</h3>
+                        <ul style="list-style: none;">
+                            <li style="padding: 8px; border-bottom: 1px solid #eee;">
+                                <span style="font-weight: bold;">Cotton</span> - 28 reports
+                            </li>
+                            <li style="padding: 8px; border-bottom: 1px solid #eee;">
+                                <span style="font-weight: bold;">Rice</span> - 22 reports
+                            </li>
+                            <li style="padding: 8px; border-bottom: 1px solid #eee;">
+                                <span style="font-weight: bold;">Wheat</span> - 15 reports
+                            </li>
+                            <li style="padding: 8px;">
+                                <span style="font-weight: bold;">Maize</span> - 12 reports
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 style="color: #667eea; margin: 20px 0 10px;">Officer Performance Metrics</h3>
+                <p style="color: #666; margin: 8px 0;">
+                    ✓ <strong>Verification Rate:</strong> 87% of reports verified within 4 hours<br>
+                    ✓ <strong>Accuracy Rate:</strong> 94% (verified reports match farmer feedback)<br>
+                    ✓ <strong>Alert Delivery:</strong> 2,345 farmers notified | 78% engagement rate<br>
+                    ✓ <strong>Average Response Time:</strong> 2.3 hours
+                </p>
+            </div>
+
+            <!-- Tab 5: Settings -->
+            <div id="settings-tab" class="widget widget-full" style="display: none;">
+                <div class="widget-title">Officer Settings & Preferences</div>
+                
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Alert Notification Threshold (Confidence %)</label>
+                        <input type="range" min="50" max="95" value="70" style="cursor: pointer;">
+                        <small style="color: #999;">Reports below this confidence will be filtered (default: 70%)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Maximum Alerts per Day</label>
+                        <input type="number" min="5" max="50" value="20" style="width: 100px;">
+                        <small style="color: #999;">Limit daily alert notifications to prevent fatigue</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Alert Radius (km)</label>
+                        <select>
+                            <option value="2">2 km (Nearby)</option>
+                            <option value="5" selected>5 km (Standard)</option>
+                            <option value="10">10 km (Wide)</option>
+                            <option value="15">15 km (Region)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Preferred Pest Categories</label>
+                        <select multiple style="height: 100px;">
+                            <option selected>Major Pests (Armyworm, Locust)</option>
+                            <option selected>Sucking Insects (Whitefly, Aphid)</option>
+                            <option>Soil Pests</option>
+                            <option>Diseases & Disorders</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Notifications</label>
+                        <select>
+                            <option selected>On Critical Only</option>
+                            <option>All Reports</option>
+                            <option>Summary (Daily)</option>
+                            <option>Off</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-large" onclick="saveSettings()">💾 Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalPestName">Pest Report Details</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <img id="modalImage" src="https://via.placeholder.com/600x300?text=Pest+Image" alt="Pest Image" class="modal-image">
+            <div class="modal-info">
+                <p><strong>Farmer:</strong> <span id="modalFarmer">John Doe</span></p>
+                <p><strong>Crop:</strong> <span id="modalCrop">Cotton</span></p>
+                <p><strong>Location:</strong> <span id="modalLocation">23.1815°N, 79.9864°E</span></p>
+                <p><strong>Affected Area:</strong> <span id="modalArea">35%</span> of field</p>
+                <p><strong>Description:</strong> <span id="modalDescription">Sample description</span></p>
+                <p><strong>Confidence Score:</strong> <span id="modalConfidence">92%</span></p>
+                <p><strong>Detected Pest:</strong> <span id="modalDetected">Armyworm</span></p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-approve" style="flex: 1; padding: 12px;" onclick="verifyModalReport(true)">✓ Approve & Create Alert</button>
+                <button class="btn btn-reject" style="flex: 1; padding: 12px;" onclick="verifyModalReport(false)">✗ Reject Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" style="display: none;"></div>
+
+    <script>
+        // Tab Switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('[id$="-tab"]').forEach(tab => tab.style.display = 'none');
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            
+            // Update active button
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Report Management
+        function viewReport(reportId) {
+            document.getElementById('modalPestName').textContent = '🐛 Armyworm - Report #' + reportId;
+            document.getElementById('modalFarmer').textContent = ['Vikram Singh', 'Priya Verma', 'Rajesh Patel', 'Deepak Kumar'][reportId - 1];
+            document.getElementById('modalCrop').textContent = ['Cotton', 'Rice', 'Wheat', 'Maize'][reportId - 1];
+            document.getElementById('modalArea').textContent = [35, 20, 15, 50][reportId - 1] + '%';
+            document.getElementById('modalConfidence').textContent = [92, 78, 85, 71][reportId - 1] + '%';
+            document.getElementById('reportModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        function verifyReport(reportId, isApproved) {
+            const action = isApproved ? 'approved' : 'rejected';
+            showToast('Pest report #' + reportId + ' ' + action + ' successfully!', isApproved ? 'success' : 'error');
+        }
+
+        function verifyModalReport(isApproved) {
+            showToast('Report has been ' + (isApproved ? 'approved and alerts are being sent' : 'rejected') + '!', isApproved ? 'success' : 'error');
+            closeModal();
+        }
+
+        // Settings
+        function saveSettings() {
+            showToast('Settings saved successfully!', 'success');
+        }
+
+        // Toast Notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + (type === 'success' ? '' : type);
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('reportModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
